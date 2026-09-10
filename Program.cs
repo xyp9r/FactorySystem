@@ -23,4 +23,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.MapGet("/api/factory/ping", () => "Завод успешно запущен и готов к работе!");
+
 app.Run();
