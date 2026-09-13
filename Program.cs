@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using FactorySystem.Data;
+using FactorySystem.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,5 +30,18 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapGet("/api/factory/ping", () => "Завод успешно запущен и готов к работе!");
+
+app.MapPost("/api/factory/users", (User newUser, AppDbContext db) =>
+{
+    db.Users.Add(newUser);
+    db.SaveChanges();
+    return Results.Ok(newUser);
+});
+
+app.MapGet("/api/factory/users", (AppDbContext db) =>
+{
+    var allUsers = db.Users.ToList();
+    return Results.Ok(allUsers);
+});
 
 app.Run();
