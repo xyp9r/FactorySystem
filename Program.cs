@@ -29,8 +29,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Пинг проверки
 app.MapGet("/api/factory/ping", () => "Завод успешно запущен и готов к работе!");
 
+// Отправляем юзеров в бд
 app.MapPost("/api/factory/users", (User newUser, AppDbContext db) =>
 {
     db.Users.Add(newUser);
@@ -38,10 +40,26 @@ app.MapPost("/api/factory/users", (User newUser, AppDbContext db) =>
     return Results.Ok(newUser);
 });
 
+// получаем юзеров из бд
 app.MapGet("/api/factory/users", (AppDbContext db) =>
 {
     var allUsers = db.Users.ToList();
     return Results.Ok(allUsers);
+});
+
+// отправляем детали
+app.MapPost("/api/factory/details", (Detail newDetail, AppDbContext db) =>
+{
+    db.Details.Add(newDetail);
+    db.SaveChanges();
+    return Results.Ok(newDetail);
+});
+
+// получаем детали
+app.MapGet("/api/factory/details", (AppDbContext db) =>
+{
+    var allDetails = db.Details.ToList();
+    return Results.Ok(allDetails);
 });
 
 app.Run();
