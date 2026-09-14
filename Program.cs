@@ -82,7 +82,7 @@ app.MapPost("/api/factory/details", (CreateDetailDto dto, AppDbContext db) =>
 // получаем детали
 app.MapGet("/api/factory/details", (AppDbContext db) =>
 {
-    var allDetails = db.Details.ToList();
+    var allDetails = db.Details.Include(d => d.Creator).ToList();
     return Results.Ok(allDetails);
 });
 
