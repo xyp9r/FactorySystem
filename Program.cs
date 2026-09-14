@@ -47,12 +47,36 @@ app.MapGet("/api/factory/users", (AppDbContext db) =>
     return Results.Ok(allUsers);
 });
 
-// отправляем детали
-app.MapPost("/api/factory/details", (Detail newDetail, AppDbContext db) =>
+// Удаление юзеров
+app.MapDelete("/api/factory/users/{id}", (int id, AppDbContext db) =>
 {
-    db.Details.Add(newDetail);
+    var deleteUser = db.Users.Find(id);
+    if (deleteUser != null)
+    {
+        db.Users.Remove(deleteUser);
+        db.SaveChanges();
+        return Results.Ok(deleteUser);
+    }
+    else
+    {
+        return Results.NotFound();
+    }
+});
+
+// отправляем детали
+app.MapPost("/api/factory/details", (CreateDetailDto dto, AppDbContext db) =>
+{
+    var detail = new Detail
+    {
+        Name = dto.Name,
+        Count = dto.Count,
+        CreatorId = dto.CreatorId,
+        Status = dto.Status
+    };
+
+    db.Details.Add(detail);
     db.SaveChanges();
-    return Results.Ok(newDetail);
+    return Results.Ok(detail);  
 });
 
 // получаем детали
