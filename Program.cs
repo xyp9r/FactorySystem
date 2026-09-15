@@ -86,4 +86,26 @@ app.MapGet("/api/factory/details", (AppDbContext db) =>
     return Results.Ok(allDetails);
 });
 
+// обновляем детали
+app.MapPut("/api/factory/details/{id}", (int id, CreateDetailDto dto, AppDbContext db) =>
+{
+    var detail = db.Details.Find(id);
+
+    if (detail != null)
+    {
+        detail.Name = dto.Name;
+        detail.Count = dto.Count;
+        detail.Status = dto.Status;
+        detail.CreatorId = dto.CreatorId;
+
+        db.SaveChanges();
+        
+        return Results.Ok(detail);
+    }
+    else
+    {
+        return Results.NotFound();
+    }
+});
+
 app.Run();
