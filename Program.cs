@@ -1,6 +1,8 @@
+using FactorySystem;
 using Microsoft.EntityFrameworkCore;
 using FactorySystem.Data;
 using FactorySystem.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -106,6 +108,24 @@ app.MapPut("/api/factory/details/{id}", (int id, CreateDetailDto dto, AppDbConte
     {
         return Results.NotFound();
     }
+});
+
+// Проверка на безопасность вход 
+app.MapPost("/api/factory/login", (AppDbContext db, LoginDto ldto) =>
+{
+    var user = db.Users.FirstOrDefault(u => u.Name == ldto.Name);
+
+    if (user == null)
+    {
+        return Results.Unauthorized();
+    }
+
+    if (user.PasswordHash != ldto.Password)
+    {
+        return Results.Unauthorized();
+    }
+        
+    return Results.Ok("Успешный вход!");
 });
 
 app.Run();
