@@ -6,17 +6,34 @@ using FactorySystem.Data;
 using FactorySystem.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddDbContext<AppDbContext>( opt => opt.UseSqlite("Data Source=factory.db"));
+
+builder.Services.AddAuthorization(); // Включаем систему прав
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var key = builder.Configuration["JwtSecret"];
+        var secretBytes = System.Text.Encoding.UTF8.GetBytes(key);
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = "MyFactory", // Должно совпадать с тем что мы выдаем
+            ValidateAudience = true,
+            ValidAudience = "MyFactory", // Должно совпадать
+            ValidateLifetime = true, // Проверяем срок годности
+            IssuerSigningKey = new SymmetricSecurityKey(secretBytes), // Тот самый ключ
+            ValidateIssuerSigningKey = true // Строго проверяем подпись
+        };
+    });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-builder.Services.AddDbContext<AppDbContext>( opt => opt.UseSqlite("Data Source=factory.db"));
 
 var app = builder.Build();
 
@@ -26,13 +43,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
 app.UseHttpsRedirection();
+
+app.UseAuthentication(); // Сначала проверяем паспорт (токен)
+app.UseAuthorization(); // Затем проверяем права доступа
 
 // Пинг проверки
 app.MapGet("/api/factory/ping", () => "Завод успешно запущен и готов к работе!");
@@ -85,11 +99,12 @@ app.MapPost("/api/factory/details", (CreateDetailDto dto, AppDbContext db) =>
 });
 
 // получаем детали
-app.MapGet("/api/factory/details", (AppDbContext db) =>
+app.MapGet("/api/factory/details/", (AppDbContext db) =>
 {
     var allDetails = db.Details.Include(d => d.Creator).ToList();
     return Results.Ok(allDetails);
-});
+})
+.RequireAuthorization();
 
 // обновляем детали
 app.MapPut("/api/factory/details/{id}", (int id, CreateDetailDto dto, AppDbContext db) =>

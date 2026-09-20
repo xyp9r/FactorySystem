@@ -1,6 +1,33 @@
-@FactorySystem_HostAddress = http://localhost:5284
+# Задаем переменную с адресом твоего сервера
+@host = http://localhost:5284
 
-GET {{FactorySystem_HostAddress}}/weatherforecast/
-Accept: application/json
+### Шаг 1: Создаем рабочего (если база пустая, нам же нужно под кем-то зайти)
+POST {{host}}/api/factory/users
+Content-Type: application/json
 
-###
+{
+  "name": "Ivan",
+  "passwordHash": "123",
+  "role": "Boss"
+}
+
+### Шаг 2: Логинимся
+# После запуска внизу откроется консоль с ответом. 
+# Там будет JSON. Скопируй оттуда саму длинную строку токена (без кавычек!).
+POST {{host}}/api/factory/login
+Content-Type: application/json
+
+{
+  "name": "Ivan",
+  "password": "123"
+}
+
+### Шаг 3: Стучимся в закрытую дверь без токена
+# Сервер обязан послать нас нафиг и выдать 401 Unauthorized. Проверь это!
+GET {{host}}/api/factory/details/
+
+
+### Шаг 4: Триумф. Стучимся с токеном
+# Удали слова ТВОЙ_СКОПИРОВАННЫЙ_ТОКЕН и вставь туда то, что получил в шаге 2
+GET {{host}}/api/factory/details/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiSXZhbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6ImJvc3MiLCJleHAiOjE3ODk5MzY2OTQsImlzcyI6Ik15RmFjdG9yeSIsImF1ZCI6Ik15RmFjdG9yeSJ9.FbleRO_AkhtZKm9PH5I2WtVQ2iApv1ToYrLXtE2nRhk
