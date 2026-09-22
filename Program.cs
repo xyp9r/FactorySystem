@@ -189,6 +189,42 @@ app.MapPut("/api/factory/details/{id}", (int id, CreateDetailDto dto, AppDbConte
 })
 .RequireAuthorization();
 
+// Удаляем детали
+app.MapDelete("/api/factory/details/{id}", (int id, AppDbContext db, ClaimsPrincipal userPrincipal) =>
+{
+    // читаем имя из токена
+    var currentUserName = userPrincipal.FindFirstValue(ClaimTypes.Name);
+    
+    // Делаем запрос к бозе - ищем пользователя у которого Name = currentUserName
+    var userFromDb = db.Users.FirstOrDefault(u => u.Name == currentUserName);
+    
+    // Защита от дурака: а вдруг юзера уже удалили из базы, а токен у него ещё жив
+    if (userFromDb == null)
+    {
+        return Results.Unauthorized();
+    }
+    
+    // находим айди детали
+    var detail = db.Details.Find(id);
+
+    // Проверяем существует ли деталь
+    if (detail == null)
+    {
+        return Results.NotFound();
+    }
+    
+    // проверяем
+    if (detail.CreatorId != userFromDb.Id)
+    {
+        return Results.Forbid();
+    }
+
+    db.Details.Remove(detail);
+    db.SaveChanges();
+    return Results.Ok(detail);
+})
+.RequireAuthorization();
+
 // Проверка на безопасность вход 
 app.MapPost("/api/factory/login", (AppDbContext db, LoginDto ldto, IConfiguration config) =>
 {
