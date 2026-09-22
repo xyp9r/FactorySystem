@@ -7,6 +7,4 @@ public class CreateDetailDto
     public int Count { get; set; }
     
     public string Status { get; set; }
-    
-    public int CreatorId { get; set; }
 }
