@@ -111,20 +111,35 @@ app.MapDelete("/api/factory/users/{id}", (int id, AppDbContext db) =>
 });
 
 // отправляем детали
-app.MapPost("/api/factory/details", (CreateDetailDto dto, AppDbContext db) =>
+app.MapPost("/api/factory/details", (CreateDetailDto dto, AppDbContext db, ClaimsPrincipal userPrincipal) =>
 {
+    
+    // читаем имя из токена
+    var currentUserName = userPrincipal.FindFirstValue(ClaimTypes.Name);
+    
+    // Делаем запрос к бозе - ищем пользователя у которого Name = currentUserName
+    var userFromDb = db.Users.FirstOrDefault(u => u.Name == currentUserName);
+    
+    // Защита от дурака: а вдруг юзера уже удалили из базы, а токен у него ещё жив
+    if (userFromDb == null)
+    {
+        return Results.Unauthorized();
+    }
+    
+    // Создаем теперь только деталь после всех проверок
     var detail = new Detail
     {
         Name = dto.Name,
         Count = dto.Count,
-        CreatorId = dto.CreatorId,
-        Status = dto.Status
+        Status = dto.Status,
+        CreatorId = userFromDb.Id
     };
 
     db.Details.Add(detail);
     db.SaveChanges();
     return Results.Ok(detail);  
-});
+})
+.RequireAuthorization();
 
 // получаем детали
 app.MapGet("/api/factory/details/", (AppDbContext db) =>
@@ -135,26 +150,44 @@ app.MapGet("/api/factory/details/", (AppDbContext db) =>
 .RequireAuthorization();
 
 // обновляем детали
-app.MapPut("/api/factory/details/{id}", (int id, CreateDetailDto dto, AppDbContext db) =>
+app.MapPut("/api/factory/details/{id}", (int id, CreateDetailDto dto, AppDbContext db,  ClaimsPrincipal userPrincipal) =>
 {
+    
+    // читаем имя из токена
+    var currentUserName = userPrincipal.FindFirstValue(ClaimTypes.Name);
+    
+    // Делаем запрос к бозе - ищем пользователя у которого Name = currentUserName
+    var userFromDb = db.Users.FirstOrDefault(u => u.Name == currentUserName);
+    
+    // Защита от дурака: а вдруг юзера уже удалили из базы, а токен у него ещё жив
+    if (userFromDb == null)
+    {
+        return Results.Unauthorized();
+    }
+    
+    // находим айди детали
     var detail = db.Details.Find(id);
 
-    if (detail != null)
-    {
-        detail.Name = dto.Name;
-        detail.Count = dto.Count;
-        detail.Status = dto.Status;
-        detail.CreatorId = dto.CreatorId;
-
-        db.SaveChanges();
-        
-        return Results.Ok(detail);
-    }
-    else
+    // Проверяем существует ли деталь
+    if (detail == null)
     {
         return Results.NotFound();
     }
-});
+    
+    // проверяем
+    if (detail.CreatorId != userFromDb.Id)
+    {
+        return Results.Forbid();
+    }
+    
+    detail.Name = dto.Name;
+    detail.Count = dto.Count;
+    detail.Status = dto.Status;
+
+    db.SaveChanges();
+    return Results.Ok(detail);
+})
+.RequireAuthorization();
 
 // Проверка на безопасность вход 
 app.MapPost("/api/factory/login", (AppDbContext db, LoginDto ldto, IConfiguration config) =>
