@@ -44,8 +44,7 @@ public static class UserEndpoints
             var jwtString = new JwtSecurityTokenHandler().WriteToken(token);
     
             return Results.Ok(new { token = jwtString });
-        })
-        .RequireAuthorization();
+        });
         
         // Отправляем юзеров в бд
         app.MapPost("/api/factory/users", (User newUser, AppDbContext db) =>
