@@ -10,7 +10,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>( opt => opt.UseSqlite("Data Source=factory.db"));
 
-builder.Services.AddAuthorization(); // Включаем систему прав
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Boss", policy =>
+    {
+        policy.RequireRole("Boss");
+    });
+}); // Включаем систему прав
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

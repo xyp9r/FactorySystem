@@ -53,9 +53,9 @@ public static class UserEndpoints
             db.SaveChanges();
             return Results.Ok(newUser);
         })
-        .RequireAuthorization();
+        .RequireAuthorization("Boss");
 
-// получаем юзеров из бд
+        // получаем юзеров из бд
         app.MapGet("/api/factory/users", (AppDbContext db) =>
         {
             var allUsers = db.Users.ToList();
@@ -63,7 +63,7 @@ public static class UserEndpoints
         })
         .RequireAuthorization();
 
-// Удаление юзеров
+        // Удаление юзеров
         app.MapDelete("/api/factory/users/{id}", (int id, AppDbContext db) =>
         {
             var deleteUser = db.Users.Find(id);
@@ -78,7 +78,7 @@ public static class UserEndpoints
                 return Results.NotFound();
             }
         })
-        .RequireAuthorization();
+        .RequireAuthorization("Boss");
 
         return app;
     }
