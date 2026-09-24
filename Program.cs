@@ -8,6 +8,9 @@ using FactorySystem.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Регистрация BCrypt хэшера
+builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
+
 builder.Services.AddDbContext<AppDbContext>( opt => opt.UseSqlite("Data Source=factory.db"));
 
 builder.Services.AddAuthorization(options =>

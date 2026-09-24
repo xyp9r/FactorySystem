@@ -7,6 +7,7 @@ using FactorySystem.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
+using BCrypt.Net;
 
 public static class UserEndpoints
 {
@@ -15,16 +16,11 @@ public static class UserEndpoints
     {
         
         // Проверка на безопасность вход 
-        app.MapPost("/api/factory/login", (AppDbContext db, LoginDto ldto, IConfiguration config) =>
+        app.MapPost("/api/factory/login", (AppDbContext db, LoginDto ldto, IConfiguration config, IPasswordHasher hasher) =>
         {
             var user = db.Users.FirstOrDefault(u => u.Name == ldto.Name);
 
-            if (user == null)
-            {
-                return Results.Unauthorized();
-            }
-
-            if (user.PasswordHash != ldto.Password)
+            if (user == null || !hasher.VerifyHashedPassword(ldto.Password, user.PasswordHash))
             {
                 return Results.Unauthorized();
             }
@@ -47,8 +43,12 @@ public static class UserEndpoints
         });
         
         // Отправляем юзеров в бд
-        app.MapPost("/api/factory/users", (User newUser, AppDbContext db) =>
+        app.MapPost("/api/factory/users", (User newUser, AppDbContext db, IPasswordHasher hasher) =>
         {
+
+            // Берем пароль, который прислал юзер и пропускаем через BCrypt
+            newUser.PasswordHash = hasher.HashPassword(newUser.PasswordHash);
+
             db.Users.Add(newUser);
             db.SaveChanges();
             return Results.Ok(newUser);
