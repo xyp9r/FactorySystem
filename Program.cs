@@ -5,11 +5,17 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using FactorySystem.Endpoints;
+using FactorySystem.Models;
+using FactorySystem.Validators;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Регистрация BCrypt хэшера
 builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
+
+// Регистрация валидатора 
+builder.Services.AddValidatorsFromAssemblyContaining<Program>(); 
 
 builder.Services.AddDbContext<AppDbContext>( opt => opt.UseSqlite("Data Source=factory.db"));
 

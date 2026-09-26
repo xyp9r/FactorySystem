@@ -6,14 +6,24 @@ using FactorySystem.Data;
 using FactorySystem.Models;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 
 public static class DetailsEndpoints
 {
     public static WebApplication MapDetailsEndpoints(this WebApplication app)
     {
         // отправляем детали
-        app.MapPost("/api/factory/details", (CreateDetailDto dto, AppDbContext db, ClaimsPrincipal userPrincipal) =>
+        app.MapPost("/api/factory/details", (CreateDetailDto dto, AppDbContext db, ClaimsPrincipal userPrincipal, IValidator<CreateDetailDto> validator) =>
         {
+            
+            // Добавляем проверку до того как лезим в бд 
+            var validationResult = validator.Validate(dto);
+
+            // если результат НЕ ВАЛИДНЫЙ выдаём ошибку
+            if (!validationResult.IsValid)
+            {
+                return Results.BadRequest(validationResult.Errors);
+            }
     
             // читаем имя из токена
             var currentUserName = userPrincipal.FindFirstValue(ClaimTypes.Name);
@@ -51,44 +61,53 @@ public static class DetailsEndpoints
         .RequireAuthorization();
 
         // обновляем детали
-        app.MapPut("/api/factory/details/{id}", (int id, CreateDetailDto dto, AppDbContext db,  ClaimsPrincipal userPrincipal) =>
+        app.MapPut("/api/factory/details/{id}", (int id, CreateDetailDto dto, AppDbContext db,  ClaimsPrincipal userPrincipal, IValidator<CreateDetailDto> validator) =>
         {
-    
-    // читаем имя из токена
-    var currentUserName = userPrincipal.FindFirstValue(ClaimTypes.Name);
-    
-    // Делаем запрос к бозе - ищем пользователя у которого Name = currentUserName
-    var userFromDb = db.Users.FirstOrDefault(u => u.Name == currentUserName);
-    
-    // Защита от дурака: а вдруг юзера уже удалили из базы, а токен у него ещё жив
-    if (userFromDb == null)
-    {
-        return Results.Unauthorized();
-    }
-    
-    // находим айди детали
-    var detail = db.Details.Find(id);
+            
+            // Добавляем проверку до того как лезим в бд
+            var validationResult = validator.Validate(dto);
 
-    // Проверяем существует ли деталь
-    if (detail == null)
-    {
-        return Results.NotFound();
-    }
+            // если результат НЕ ВАЛИДНЫЙ выдаём ошибку
+            if (!validationResult.IsValid)
+            {
+                return Results.BadRequest(validationResult.Errors);
+            }
     
-    // проверяем
-    if (detail.CreatorId != userFromDb.Id)
-    {
-        return Results.Forbid();
-    }
+            // читаем имя из токена
+            var currentUserName = userPrincipal.FindFirstValue(ClaimTypes.Name);
     
-    detail.Name = dto.Name;
-    detail.Count = dto.Count;
-    detail.Status = dto.Status;
+            // Делаем запрос к бозе - ищем пользователя у которого Name = currentUserName
+            var userFromDb = db.Users.FirstOrDefault(u => u.Name == currentUserName);
+    
+            // Защита от дурака: а вдруг юзера уже удалили из базы, а токен у него ещё жив
+            if (userFromDb == null)
+            {
+                return Results.Unauthorized();
+            }
+    
+            // находим айди детали
+            var detail = db.Details.Find(id);
 
-    db.SaveChanges();
-    return Results.Ok(detail);
-})
-.RequireAuthorization();
+            // Проверяем существует ли деталь
+            if (detail == null)
+            {
+                return Results.NotFound();
+            }
+    
+            // проверяем
+            if (detail.CreatorId != userFromDb.Id)
+            {
+                return Results.Forbid();
+            }
+    
+            detail.Name = dto.Name;
+            detail.Count = dto.Count;
+            detail.Status = dto.Status;
+
+            db.SaveChanges();
+            return Results.Ok(detail);
+        })
+        .RequireAuthorization();
 
         // Удаляем детали
         app.MapDelete("/api/factory/details/{id}", (int id, AppDbContext db, ClaimsPrincipal userPrincipal) =>
