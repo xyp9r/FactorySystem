@@ -22,7 +22,18 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            // TODO: сделать красивый JSON
+            // Присваиваем ошибке статус 500
+            context.Response.StatusCode = 500;
+            
+            // присваиваем json
+            context.Response.ContentType = "application/json";
+            
+            // Упаковываем ошибку
+            var result = JsonSerializer.Serialize(new { error = ex.Message });
+            
+            // Отправляем
+            await context.Response.WriteAsync(result);
+
         }
     }
 }

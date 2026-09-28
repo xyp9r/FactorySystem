@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using FactorySystem.Endpoints;
+using FactorySystem.Middleware;
 using FactorySystem.Models;
 using FactorySystem.Validators;
 using FluentValidation;
@@ -76,6 +77,8 @@ builder.Services.AddOpenApi(options =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
