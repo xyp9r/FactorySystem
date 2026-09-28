@@ -48,18 +48,35 @@ public static class UserEndpoints
 
             // Берем пароль, который прислал юзер и пропускаем через BCrypt
             newUser.PasswordHash = hasher.HashPassword(newUser.PasswordHash);
-
+            
             db.Users.Add(newUser);
+            
             db.SaveChanges();
-            return Results.Ok(newUser);
+            
+            var safeUser = new UserResponseDto
+            {
+                Id = newUser.Id,
+                Name = newUser.Name,
+                Role = newUser.Role,
+            };
+            
+            return Results.Ok(safeUser);
         })
         .RequireAuthorization("Boss");
 
         // получаем юзеров из бд
         app.MapGet("/api/factory/users", (AppDbContext db) =>
-        {
-            var allUsers = db.Users.ToList();
-            return Results.Ok(allUsers);
+            {
+                
+                var allUsers = db.Users
+                    .Select(userFromDb => new UserResponseDto
+                    {
+                        Id = userFromDb.Id,
+                        Name = userFromDb.Name,
+                        Role = userFromDb.Role,
+                    })
+                    .ToList();
+                    return Results.Ok(allUsers);
         })
         .RequireAuthorization();
 
@@ -69,9 +86,16 @@ public static class UserEndpoints
             var deleteUser = db.Users.Find(id);
             if (deleteUser != null)
             {
+                var safeUser = new UserResponseDto
+                {
+                    Id = deleteUser.Id,
+                    Name = deleteUser.Name,
+                    Role = deleteUser.Role
+                };
+                
                 db.Users.Remove(deleteUser);
                 db.SaveChanges();
-                return Results.Ok(deleteUser);
+                return Results.Ok(safeUser);
             }
             else
             {
