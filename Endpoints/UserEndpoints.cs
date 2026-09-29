@@ -1,3 +1,5 @@
+using FactorySystem.Services;
+
 namespace FactorySystem.Endpoints;
 
 using Microsoft.AspNetCore.Builder;
@@ -43,22 +45,9 @@ public static class UserEndpoints
         });
         
         // Отправляем юзеров в бд
-        app.MapPost("/api/factory/users", (User newUser, AppDbContext db, IPasswordHasher hasher) =>
+        app.MapPost("/api/factory/users", (User newUser, UserService userService) =>
         {
-
-            // Берем пароль, который прислал юзер и пропускаем через BCrypt
-            newUser.PasswordHash = hasher.HashPassword(newUser.PasswordHash);
-            
-            db.Users.Add(newUser);
-            
-            db.SaveChanges();
-            
-            var safeUser = new UserResponseDto
-            {
-                Id = newUser.Id,
-                Name = newUser.Name,
-                Role = newUser.Role,
-            };
+            var safeUser = userService.CreateUser(newUser);
             
             return Results.Ok(safeUser);
         })

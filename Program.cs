@@ -7,6 +7,7 @@ using Scalar.AspNetCore;
 using FactorySystem.Endpoints;
 using FactorySystem.Middleware;
 using FactorySystem.Models;
+using FactorySystem.Services;
 using FactorySystem.Validators;
 using FluentValidation;
 
@@ -14,6 +15,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Регистрация BCrypt хэшера
 builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
+
+builder.Services.AddScoped<UserService>();
 
 // Регистрация валидатора 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>(); 
