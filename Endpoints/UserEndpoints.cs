@@ -58,26 +58,17 @@ public static class UserEndpoints
         .RequireAuthorization();
 
         // Удаление юзеров
-        app.MapDelete("/api/factory/users/{id}", (int id, AppDbContext db) =>
+        app.MapDelete("/api/factory/users/{id}", (UserService userService, int id) =>
         {
-            var deleteUser = db.Users.Find(id);
-            if (deleteUser != null)
-            {
-                var safeUser = new UserResponseDto
-                {
-                    Id = deleteUser.Id,
-                    Name = deleteUser.Name,
-                    Role = deleteUser.Role
-                };
-                
-                db.Users.Remove(deleteUser);
-                db.SaveChanges();
-                return Results.Ok(safeUser);
-            }
-            else
-            {
-                return Results.NotFound();
-            }
+           var isDeleted = userService.DeleteUser(id);
+           if (isDeleted)
+           {
+               return Results.Ok();
+           }
+           else
+           {
+               return Results.NotFound();
+           }
         })
         .RequireAuthorization("Boss");
 

@@ -6,9 +6,11 @@ namespace FactorySystem.Services;
 
 public class UserService
 {
+    // Добавляем читалку чтобы наш класс знал что это такое
     private readonly AppDbContext _db;
     private readonly IPasswordHasher _hasher;
 
+    // 
     public UserService(AppDbContext db, IPasswordHasher hasher)
     {
         _db = db;
@@ -32,5 +34,21 @@ public class UserService
         };
 
         return safeUser;
+    }
+
+    // Удаление юзера
+    public bool DeleteUser(int id)
+    {
+        var deleteUser = _db.Users.Find(id);
+        if (deleteUser != null)
+        {
+            _db.Users.Remove(deleteUser);
+            _db.SaveChanges();
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
