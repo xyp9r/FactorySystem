@@ -44,11 +44,26 @@ public static class UserEndpoints
         // получаем юзеров из бд
         app.MapGet("/api/factory/users", (UserService userService) =>
             {
-                var getUsers = userService.GetUsers();
+                var getUsersAll = userService.GetUsersAll();
                 
-                return Results.Ok(getUsers);
+                return Results.Ok(getUsersAll);
             })
         .RequireAuthorization();
+
+        // Получаем КОНКРЕТНОГО юзера
+        app.MapGet("/api/factory/users/{id}", (UserService userService, int id) =>
+        {
+            var getUser = userService.GetUser(id);
+
+            if (getUser != null)
+            {
+                return Results.Ok(getUser);
+            }
+            else
+            {
+                return Results.NotFound();
+            }
+        });
 
         // Удаление юзеров
         app.MapDelete("/api/factory/users/{id}", (UserService userService, int id) =>

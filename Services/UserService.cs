@@ -53,7 +53,7 @@ public class UserService
     }
     
     // Получение всех юзеров
-    public List<UserResponseDto> GetUsers()
+    public List<UserResponseDto> GetUsersAll()
     {
         var allUsers = _db.Users
             .Select(userFromDb => new UserResponseDto
@@ -64,5 +64,28 @@ public class UserService
             })
             .ToList();
         return allUsers;
+    }
+    
+    // Получение конкретного юзера
+    public UserResponseDto? GetUser(int id)
+    {
+        var user = _db.Users.Find(id);
+
+        if (user != null)
+        {
+            
+            var safeUser = new UserResponseDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Role = user.Role
+            };
+
+            return safeUser;
+        }
+        else
+        {
+            return null;
+        }
     }
 }
