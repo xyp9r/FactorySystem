@@ -42,19 +42,12 @@ public static class UserEndpoints
         .RequireAuthorization("Boss");
 
         // получаем юзеров из бд
-        app.MapGet("/api/factory/users", (AppDbContext db) =>
+        app.MapGet("/api/factory/users", (UserService userService) =>
             {
+                var getUsers = userService.GetUsers();
                 
-                var allUsers = db.Users
-                    .Select(userFromDb => new UserResponseDto
-                    {
-                        Id = userFromDb.Id,
-                        Name = userFromDb.Name,
-                        Role = userFromDb.Role,
-                    })
-                    .ToList();
-                    return Results.Ok(allUsers);
-        })
+                return Results.Ok(getUsers);
+            })
         .RequireAuthorization();
 
         // Удаление юзеров

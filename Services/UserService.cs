@@ -51,4 +51,18 @@ public class UserService
             return false;
         }
     }
+    
+    // Получение всех юзеров
+    public List<UserResponseDto> GetUsers()
+    {
+        var allUsers = _db.Users
+            .Select(userFromDb => new UserResponseDto
+            {
+                Id = userFromDb.Id,
+                Name = userFromDb.Name,
+                Role = userFromDb.Role,
+            })
+            .ToList();
+        return allUsers;
+    }
 }
