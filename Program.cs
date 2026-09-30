@@ -16,7 +16,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Регистрация BCrypt хэшера
 builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 
+// Регистрация юзер сервиса
 builder.Services.AddScoped<UserService>();
+
+// Регистрация сервиса аутентификации
+builder.Services.AddScoped<AuthService>();
 
 // Регистрация валидатора 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>(); 

@@ -18,30 +18,18 @@ public static class UserEndpoints
     {
         
         // Проверка на безопасность вход 
-        app.MapPost("/api/factory/login", (AppDbContext db, LoginDto ldto, IConfiguration config, IPasswordHasher hasher) =>
+        app.MapPost("/api/factory/login", (AuthService authService, LoginDto ldto) =>
         {
-            var user = db.Users.FirstOrDefault(u => u.Name == ldto.Name);
+            var login = authService.Login(ldto);
 
-            if (user == null || !hasher.VerifyHashedPassword(ldto.Password, user.PasswordHash))
+            if (login == null)
             {
-                return Results.Unauthorized();
+                return Results.Json(
+                    data: new { error = "Неавторизован", message = "Неверный логин или пароль" }, 
+                    statusCode: 401);
             }
-        
-            var key = config["JwtSecret"]!;
-            var secretBytes = System.Text.Encoding.UTF8.GetBytes(key);
-    
-            var securityKey = new SymmetricSecurityKey(secretBytes);
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim(ClaimTypes.Name, user.Name));
-            claims.Add(new Claim(ClaimTypes.Role, user.Role));
-
-            var token = new JwtSecurityToken(issuer: "MyFactory", audience: "MyFactory", claims, expires: DateTime.UtcNow.AddHours(1), signingCredentials: credentials);
-    
-            var jwtString = new JwtSecurityTokenHandler().WriteToken(token);
-    
-            return Results.Ok(new { token = jwtString });
+            
+            return Results.Ok(login);
         });
         
         // Отправляем юзеров в бд
