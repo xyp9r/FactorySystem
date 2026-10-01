@@ -65,6 +65,22 @@ public static class UserEndpoints
             }
         });
 
+        app.MapPut("api/factory/users/{id}", (UserService userService, int id, UpdateUserDto dto) =>
+            {
+
+                var putUser = userService.UpdateUser(id, dto);
+            
+                if (putUser)
+                {
+                    return Results.Ok(putUser);
+                }
+                else 
+                {
+                    return Results.NotFound();
+                }
+            })
+        .RequireAuthorization("Boss");
+
         // Удаление юзеров
         app.MapDelete("/api/factory/users/{id}", (UserService userService, int id) =>
         {

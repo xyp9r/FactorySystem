@@ -88,4 +88,23 @@ public class UserService
             return null;
         }
     }
+    
+    // Обновляем юзера
+    public bool UpdateUser(int id, UpdateUserDto dto)
+    {
+
+        var user = _db.Users.Find(id);
+
+        if (user != null)
+        {
+            user.Name = dto.Name;
+            user.Role = dto.Role;
+            _db.SaveChanges();
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 }
