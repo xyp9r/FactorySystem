@@ -70,7 +70,7 @@ public static class UserEndpoints
 
                 var putUser = userService.UpdateUser(id, dto);
             
-                if (putUser)
+                if (putUser != null)
                 {
                     return Results.Ok(putUser);
                 }

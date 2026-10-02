@@ -89,8 +89,10 @@ public class UserService
         }
     }
     
+    
+    //TODO : посмореть последнее сообщение гемини и сделать этот фикс чтобы не отдавало просто true/false
     // Обновляем юзера
-    public bool UpdateUser(int id, UpdateUserDto dto)
+    public UserResponseDto? UpdateUser(int id, UpdateUserDto dto)
     {
 
         var user = _db.Users.Find(id);
@@ -100,11 +102,19 @@ public class UserService
             user.Name = dto.Name;
             user.Role = dto.Role;
             _db.SaveChanges();
-            return true;
+            
+            var safeUser = new UserResponseDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Role = user.Role
+            };
+
+            return safeUser;
         }
         else
         {
-            return false;
+            return null;
         }
     }
 }
