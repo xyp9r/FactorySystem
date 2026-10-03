@@ -37,6 +37,7 @@ public class AuthService
 
         List<Claim> claims = new List<Claim>();
         claims.Add(new Claim(ClaimTypes.Name, user.Name));
+        claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
         claims.Add(new Claim(ClaimTypes.Role, user.Role));
 
         var token = new JwtSecurityToken(issuer: "MyFactory", audience: "MyFactory", claims, expires: DateTime.UtcNow.AddHours(1), signingCredentials: credentials);
