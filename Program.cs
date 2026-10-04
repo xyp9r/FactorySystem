@@ -19,6 +19,9 @@ builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 // Регистрация юзер сервиса
 builder.Services.AddScoped<UserService>();
 
+// Регистрация детального сервиса
+builder.Services.AddScoped<DetailService>();
+
 // Регистрация сервиса аутентификации
 builder.Services.AddScoped<AuthService>();
 
