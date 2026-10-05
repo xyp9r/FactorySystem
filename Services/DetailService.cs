@@ -82,4 +82,29 @@ public class DetailService
             .ToList();
         return allDetails;
     }
+    
+    // Получаем одну конкретную деталь
+    public DetailResponseDto? GetDetail(int id)
+    {
+        var detail = _db.Details.Find(id);
+
+        if (detail != null)
+        {
+            // Создаем теперь только деталь после всех проверок
+            var safeDetail = new DetailResponseDto
+            {
+                Name = detail.Name,
+                Count = detail.Count,
+                Status = detail.Status,
+                CreatorId = detail.CreatorId,
+                Id = detail.Id
+            };
+        
+            return safeDetail;
+        }
+        else
+        {
+            return null;
+        }
+    }
 }

@@ -30,6 +30,22 @@ public static class DetailsEndpoints
                 return Results.Ok(getDetailAll);
             })
         .RequireAuthorization();
+        
+        // Получаем одну конкретную делать
+        app.MapGet("/api/factory/details/{id}", (DetailService detailService, int id) =>
+        {
+            var getDetail = detailService.GetDetail(id);
+
+            if (getDetail != null)
+            {
+                return Results.Ok(getDetail);
+            }
+            else
+            {
+                return Results.NotFound();
+            }
+        })
+        .RequireAuthorization();
 
         // обновляем детали
         app.MapPut("/api/factory/details/{id}", (int id, CreateDetailDto dto, AppDbContext db,  ClaimsPrincipal userPrincipal, IValidator<CreateDetailDto> validator) =>
