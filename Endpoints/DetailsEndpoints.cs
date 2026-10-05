@@ -24,11 +24,11 @@ public static class DetailsEndpoints
         .RequireAuthorization();
 
         // получаем детали
-        app.MapGet("/api/factory/details/", (AppDbContext db) =>
-        {
-            var allDetails = db.Details.Include(d => d.Creator).ToList();
-            return Results.Ok(allDetails);
-        })
+        app.MapGet("/api/factory/details/", (DetailService detailService) =>
+            {
+                var getDetailAll = detailService.GetDetailsAll();
+                return Results.Ok(getDetailAll);
+            })
         .RequireAuthorization();
 
         // обновляем детали

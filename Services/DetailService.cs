@@ -19,6 +19,7 @@ public class DetailService
         _validator = validator;
     }
 
+    // Создаем деталь
     public DetailResponseDto? CreateDetail(CreateDetailDto dto, ClaimsPrincipal principal)
     {
         // Добавляем проверку до того как лезим в бд 
@@ -64,5 +65,21 @@ public class DetailService
         };
         
         return safeDetail;
+    }
+    
+    // Получаем все детали
+    public List<DetailResponseDto> GetDetailsAll()
+    {
+        var allDetails = _db.Details
+            .Select(d => new DetailResponseDto
+            {
+                Name = d.Name,
+                Count = d.Count,
+                Status = d.Status,
+                CreatorId = d.CreatorId,
+                Id = d.Id
+            })
+            .ToList();
+        return allDetails;
     }
 }
