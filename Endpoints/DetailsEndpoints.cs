@@ -48,51 +48,18 @@ public static class DetailsEndpoints
         .RequireAuthorization();
 
         // обновляем детали
-        app.MapPut("/api/factory/details/{id}", (int id, CreateDetailDto dto, AppDbContext db,  ClaimsPrincipal userPrincipal, IValidator<CreateDetailDto> validator) =>
+        app.MapPut("/api/factory/details/{id}", (DetailService detailService, CreateDetailDto dto, ClaimsPrincipal principal, int id) =>
         {
-            
-            // Добавляем проверку до того как лезим в бд
-            var validationResult = validator.Validate(dto);
+            var putDetail = detailService.UpdateDetail(dto, principal, id);
 
-            // если результат НЕ ВАЛИДНЫЙ выдаём ошибку
-            if (!validationResult.IsValid)
+            if (putDetail != null)
             {
-                return Results.BadRequest(validationResult.Errors);
+                return Results.Ok(putDetail);
             }
-    
-            // читаем имя из токена
-            var currentUserName = userPrincipal.FindFirstValue(ClaimTypes.Name);
-    
-            // Делаем запрос к бозе - ищем пользователя у которого Name = currentUserName
-            var userFromDb = db.Users.FirstOrDefault(u => u.Name == currentUserName);
-    
-            // Защита от дурака: а вдруг юзера уже удалили из базы, а токен у него ещё жив
-            if (userFromDb == null)
-            {
-                return Results.Unauthorized();
-            }
-    
-            // находим айди детали
-            var detail = db.Details.Find(id);
-
-            // Проверяем существует ли деталь
-            if (detail == null)
+            else
             {
                 return Results.NotFound();
             }
-    
-            // проверяем
-            if (detail.CreatorId != userFromDb.Id)
-            {
-                return Results.Forbid();
-            }
-    
-            detail.Name = dto.Name;
-            detail.Count = dto.Count;
-            detail.Status = dto.Status;
-
-            db.SaveChanges();
-            return Results.Ok(detail);
         })
         .RequireAuthorization();
 

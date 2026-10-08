@@ -107,4 +107,62 @@ public class DetailService
             return null;
         }
     }
+    
+    // Обновляем детали
+    public DetailResponseDto? UpdateDetail(CreateDetailDto dto, ClaimsPrincipal principal, int id)
+    {
+        // Добавляем проверку до того как лезим в бд
+        var validationResult = _validator.Validate(dto);
+
+        // если результат НЕ ВАЛИДНЫЙ выдаём ошибку
+        if (!validationResult.IsValid)
+        {
+            return null;
+        }
+    
+        // читаем имя из токена
+        var currentUserName = principal.FindFirstValue(ClaimTypes.Name);
+    
+        // Делаем запрос к бозе - ищем пользователя у которого Name = currentUserName
+        var userFromDb = _db.Users.FirstOrDefault(u => u.Name == currentUserName);
+    
+        // Защита от дурака: а вдруг юзера уже удалили из базы, а токен у него ещё жив
+        if (userFromDb == null)
+        {
+            return null;
+        }
+    
+        var detail = _db.Details.Find(id);
+
+        if (detail != null)
+        {
+            
+            if (detail.CreatorId != userFromDb.Id)
+            {
+                return null;
+            }
+            
+            detail.Name = dto.Name;
+            detail.Count = dto.Count;
+            detail.Status = dto.Status;
+            detail.CreatorId = userFromDb.Id;
+            _db.SaveChanges();
+            
+            // Создаем теперь только деталь после всех проверок
+            var safeDetail = new DetailResponseDto
+            {
+                Name = detail.Name,
+                Count = detail.Count,
+                Status = detail.Status,
+                CreatorId = detail.CreatorId,
+                Id = detail.Id
+            };
+            
+            return safeDetail;
+        }
+        else
+        {
+            return null;
+        }
+    }
 }
