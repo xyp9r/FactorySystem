@@ -165,4 +165,39 @@ public class DetailService
             return null;
         }
     }
+    
+    // Удаляем деталь
+    public bool DeleteDetail(int id, ClaimsPrincipal principal)
+    {
+        // читаем имя из токена
+        var currentUserName = principal.FindFirstValue(ClaimTypes.Name);
+
+        // Делаем запрос к бозе - ищем пользователя у которого Name = currentUserName
+        var userFromDb = _db.Users.FirstOrDefault(u => u.Name == currentUserName);
+
+        // Защита от дурака: а вдруг юзера уже удалили из базы, а токен у него ещё жив
+        if (userFromDb == null)
+        {
+            return false;
+        }
+
+        // находим айди детали
+        var detail = _db.Details.Find(id);
+
+        // Проверяем существует ли деталь
+        if (detail == null)
+        {
+            return false;
+        }
+
+        // проверяем
+        if (detail.CreatorId != userFromDb.Id)
+        {
+            return false;
+        }
+
+        _db.Details.Remove(detail);
+        _db.SaveChanges();
+        return true;
+    }
 }

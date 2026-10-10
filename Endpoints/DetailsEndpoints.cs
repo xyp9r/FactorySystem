@@ -29,7 +29,7 @@ public static class DetailsEndpoints
                 var getDetailAll = detailService.GetDetailsAll();
                 return Results.Ok(getDetailAll);
             })
-        .RequireAuthorization();
+        .RequireAuthorization("Boss");
         
         // Получаем одну конкретную делать
         app.MapGet("/api/factory/details/{id}", (DetailService detailService, int id) =>
@@ -45,7 +45,7 @@ public static class DetailsEndpoints
                 return Results.NotFound();
             }
         })
-        .RequireAuthorization();
+        .RequireAuthorization("Boss");
 
         // обновляем детали
         app.MapPut("/api/factory/details/{id}", (DetailService detailService, CreateDetailDto dto, ClaimsPrincipal principal, int id) =>
@@ -61,43 +61,23 @@ public static class DetailsEndpoints
                 return Results.NotFound();
             }
         })
-        .RequireAuthorization();
+        .RequireAuthorization("Boss");
 
         // Удаляем детали
-        app.MapDelete("/api/factory/details/{id}", (int id, AppDbContext db, ClaimsPrincipal userPrincipal) =>
+        app.MapDelete("/api/factory/details/{id}", (DetailService detailService, int id, ClaimsPrincipal principal) =>
             {
-                // читаем имя из токена
-                var currentUserName = userPrincipal.FindFirstValue(ClaimTypes.Name);
+                var deleteDetail = detailService.DeleteDetail(id, principal);
 
-                // Делаем запрос к бозе - ищем пользователя у которого Name = currentUserName
-                var userFromDb = db.Users.FirstOrDefault(u => u.Name == currentUserName);
-
-                // Защита от дурака: а вдруг юзера уже удалили из базы, а токен у него ещё жив
-                if (userFromDb == null)
+                if (deleteDetail)
                 {
-                    return Results.Unauthorized();
+                    return Results.Ok(deleteDetail);
                 }
-
-                // находим айди детали
-                var detail = db.Details.Find(id);
-
-                // Проверяем существует ли деталь
-                if (detail == null)
+                else
                 {
                     return Results.NotFound();
                 }
-
-                // проверяем
-                if (detail.CreatorId != userFromDb.Id)
-                {
-                    return Results.Forbid();
-                }
-
-                db.Details.Remove(detail);
-                db.SaveChanges();
-                return Results.Ok(detail);
             })
-            .RequireAuthorization();
+            .RequireAuthorization("Boss");
         return app;
     }
 }
