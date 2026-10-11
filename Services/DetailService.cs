@@ -13,6 +13,7 @@ public class DetailService
     private readonly AppDbContext _db;
     private readonly IValidator<CreateDetailDto> _validator;
 
+    // Constructor Injection 
     public DetailService(AppDbContext db, IValidator<CreateDetailDto> validator)
     {
         _db = db;
@@ -43,6 +44,7 @@ public class DetailService
             return null;
         }
 
+        // Создаем настоящую детальку и сохраняем ее
         var realDetail = new Detail
         {
             Name = dto.Name,
@@ -64,6 +66,7 @@ public class DetailService
             Id = realDetail.Id
         };
         
+        // И возвращаем уже Безопасную детальку, чтобы ничего не слить лишнего
         return safeDetail;
     }
     
@@ -178,6 +181,7 @@ public class DetailService
         // Защита от дурака: а вдруг юзера уже удалили из базы, а токен у него ещё жив
         if (userFromDb == null)
         {
+            // Токен юзера не существует / Юзер удален из базы - возвращаем false
             return false;
         }
 
@@ -187,12 +191,14 @@ public class DetailService
         // Проверяем существует ли деталь
         if (detail == null)
         {
+            // Деталь не существует, возвращаем false
             return false;
         }
 
         // проверяем
         if (detail.CreatorId != userFromDb.Id)
         {
+            // Деталь не от создателя, тоже возвращаем false
             return false;
         }
 
