@@ -170,7 +170,7 @@ public class DetailService
     }
     
     // Удаляем деталь
-    public bool DeleteDetail(int id, ClaimsPrincipal principal)
+    public Result DeleteDetail(int id, ClaimsPrincipal principal)
     {
         // читаем имя из токена
         var currentUserName = principal.FindFirstValue(ClaimTypes.Name);
@@ -182,7 +182,7 @@ public class DetailService
         if (userFromDb == null)
         {
             // Токен юзера не существует / Юзер удален из базы - возвращаем false
-            return false;
+            return Result.Failure(new Error(ErrorType.Unauthorized, "User not found of token expired."));
         }
 
         // находим айди детали
@@ -192,18 +192,18 @@ public class DetailService
         if (detail == null)
         {
             // Деталь не существует, возвращаем false
-            return false;
+            return Result.Failure(new Error(ErrorType.NotFound, "Detail not found on the factory floor."));
         }
 
         // проверяем
         if (detail.CreatorId != userFromDb.Id)
         {
             // Деталь не от создателя, тоже возвращаем false
-            return false;
+            return Result.Failure(new Error(ErrorType.Forbidden, "You cannot delete Boss's detail!"));
         }
 
         _db.Details.Remove(detail);
         _db.SaveChanges();
-        return true;
+        return Result.Success();
     }
 }
