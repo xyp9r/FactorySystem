@@ -112,7 +112,7 @@ public class DetailService
     }
     
     // Обновляем детали
-    public DetailResponseDto? UpdateDetail(CreateDetailDto dto, ClaimsPrincipal principal, int id)
+    public Result<DetailResponseDto> UpdateDetail(CreateDetailDto dto, ClaimsPrincipal principal, int id)
     {
         // Добавляем проверку до того как лезим в бд
         var validationResult = _validator.Validate(dto);
@@ -120,7 +120,8 @@ public class DetailService
         // если результат НЕ ВАЛИДНЫЙ выдаём ошибку
         if (!validationResult.IsValid)
         {
-            return null;
+            // Токен юзера не существует 
+            return Result<DetailResponseDto>.Failure(new Error(ErrorType.Validator, "Name , count , or status is not valid"));
         }
     
         // читаем имя из токена
@@ -132,7 +133,7 @@ public class DetailService
         // Защита от дурака: а вдруг юзера уже удалили из базы, а токен у него ещё жив
         if (userFromDb == null)
         {
-            return null;
+            return Result<DetailResponseDto>.Failure(new Error(ErrorType.Unauthorized, "User not found of token expired."));
         }
     
         var detail = _db.Details.Find(id);
@@ -142,7 +143,8 @@ public class DetailService
             
             if (detail.CreatorId != userFromDb.Id)
             {
-                return null;
+                // Если деталь не того юзера
+                return Result<DetailResponseDto>.Failure(new Error(ErrorType.Forbidden, "You cannot edit not yours detail!"));
             }
             
             detail.Name = dto.Name;
@@ -161,11 +163,11 @@ public class DetailService
                 Id = detail.Id
             };
             
-            return safeDetail;
+            return Result<DetailResponseDto>.Success(safeDetail);
         }
         else
         {
-            return null;
+            return Result<DetailResponseDto>.Failure(new Error(ErrorType.NotFound, "Detail not found on the factory floor."));
         }
     }
     

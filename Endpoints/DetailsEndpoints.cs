@@ -52,14 +52,16 @@ public static class DetailsEndpoints
         {
             var putDetail = detailService.UpdateDetail(dto, principal, id);
 
-            if (putDetail != null)
+            return putDetail switch
             {
-                return Results.Ok(putDetail);
-            }
-            else
-            {
-                return Results.NotFound();
-            }
+                { IsSuccess: true }  => Results.Ok(putDetail.Value),
+                { Error.Type: ErrorType.NotFound } => Results.NotFound(putDetail.Error.Message),
+                { Error.Type: ErrorType.Forbidden } => Results.Forbid(),
+                { Error.Type: ErrorType.Validator } => Results.BadRequest(),
+                { Error.Type: ErrorType.Failure } => Results.StatusCode(500),
+                { Error.Type: ErrorType.Unauthorized } => Results.Unauthorized(),
+                _ => Results.StatusCode(500)
+            };
         })
         .RequireAuthorization("Boss");
 
