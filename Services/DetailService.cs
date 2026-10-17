@@ -87,7 +87,7 @@ public class DetailService
     }
     
     // Получаем одну конкретную деталь
-    public DetailResponseDto? GetDetail(int id)
+    public Result<DetailResponseDto> GetDetail(int id)
     {
         var detail = _db.Details.Find(id);
 
@@ -102,12 +102,12 @@ public class DetailService
                 CreatorId = detail.CreatorId,
                 Id = detail.Id
             };
-        
-            return safeDetail;
+
+            return Result<DetailResponseDto>.Success(safeDetail);
         }
         else
         {
-            return null;
+            return Result<DetailResponseDto>.Failure(new Error(ErrorType.NotFound, "Detail not found on the factory floor."));
         }
     }
     

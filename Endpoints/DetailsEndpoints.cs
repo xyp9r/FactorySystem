@@ -36,14 +36,15 @@ public static class DetailsEndpoints
         {
             var getDetail = detailService.GetDetail(id);
 
-            if (getDetail != null)
+            return getDetail switch
             {
-                return Results.Ok(getDetail);
-            }
-            else
-            {
-                return Results.NotFound();
-            }
+                { IsSuccess: true } => Results.Ok(getDetail.Value),
+                { Error.Type: ErrorType.NotFound } => Results.NotFound(getDetail.Error.Message),
+                { Error.Type: ErrorType.Forbidden } => Results.Forbid(),
+                { Error.Type: ErrorType.Failure } => Results.StatusCode(500),
+                { Error.Type: ErrorType.Unauthorized } => Results.Unauthorized(),
+                _ => Results.StatusCode(500)
+            };
         })
         .RequireAuthorization("Boss");
 
