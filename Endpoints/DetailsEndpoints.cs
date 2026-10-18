@@ -82,7 +82,7 @@ public static class DetailsEndpoints
                     { IsSuccess: true } => Results.NoContent(),
                     { Error.Type: ErrorType.NotFound } => Results.NotFound(deleteDetail.Error.Message),
                     { Error.Type: ErrorType.Forbidden } => Results.Forbid(),
-                    { Error.Type: ErrorType.Unauthorized } => Results.Unauthorized(z),
+                    { Error.Type: ErrorType.Unauthorized } => Results.Unauthorized(),
                     _ => Results.StatusCode(500)
                 };
             })
