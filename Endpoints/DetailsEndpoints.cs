@@ -18,8 +18,14 @@ public static class DetailsEndpoints
         app.MapPost("/api/factory/details", (DetailService detailService, CreateDetailDto dto,  ClaimsPrincipal principal) =>
             {
                 var postDetail = detailService.CreateDetail(dto, principal);
-                
-                return Results.Ok(postDetail);
+
+                return postDetail switch
+                {
+                    { IsSuccess: true } => Results.Created($"/api/factory/details/{postDetail.Value.Id}", postDetail.Value),
+                    { Error.Type: ErrorType.Validator } => Results.BadRequest(postDetail.Error.Message),
+                    { Error.Type: ErrorType.Unauthorized } => Results.Unauthorized(),
+                    _ => Results.StatusCode(500)
+                };
             })
         .RequireAuthorization();
 
@@ -27,7 +33,11 @@ public static class DetailsEndpoints
         app.MapGet("/api/factory/details/", (DetailService detailService) =>
             {
                 var getDetailAll = detailService.GetDetailsAll();
-                return Results.Ok(getDetailAll);
+                return getDetailAll switch
+                {
+                    { IsSuccess: true } => Results.Ok(getDetailAll.Value),
+                    _ => Results.StatusCode(500)
+                };
             })
         .RequireAuthorization("Boss");
         
@@ -39,10 +49,7 @@ public static class DetailsEndpoints
             return getDetail switch
             {
                 { IsSuccess: true } => Results.Ok(getDetail.Value),
-                { Error.Type: ErrorType.NotFound } => Results.NotFound(getDetail.Error.Message),
-                { Error.Type: ErrorType.Forbidden } => Results.Forbid(),
-                { Error.Type: ErrorType.Failure } => Results.StatusCode(500),
-                { Error.Type: ErrorType.Unauthorized } => Results.Unauthorized(),
+                { Error.Type: ErrorType.Failure } => Results.NotFound(getDetail.Error.Message),
                 _ => Results.StatusCode(500)
             };
         })
@@ -58,8 +65,7 @@ public static class DetailsEndpoints
                 { IsSuccess: true }  => Results.Ok(putDetail.Value),
                 { Error.Type: ErrorType.NotFound } => Results.NotFound(putDetail.Error.Message),
                 { Error.Type: ErrorType.Forbidden } => Results.Forbid(),
-                { Error.Type: ErrorType.Validator } => Results.BadRequest(),
-                { Error.Type: ErrorType.Failure } => Results.StatusCode(500),
+                { Error.Type: ErrorType.Validator } => Results.BadRequest(putDetail.Error.Message),
                 { Error.Type: ErrorType.Unauthorized } => Results.Unauthorized(),
                 _ => Results.StatusCode(500)
             };
@@ -76,7 +82,7 @@ public static class DetailsEndpoints
                     { IsSuccess: true } => Results.NoContent(),
                     { Error.Type: ErrorType.NotFound } => Results.NotFound(deleteDetail.Error.Message),
                     { Error.Type: ErrorType.Forbidden } => Results.Forbid(),
-                    { Error.Type: ErrorType.Unauthorized } => Results.Unauthorized(),
+                    { Error.Type: ErrorType.Unauthorized } => Results.Unauthorized(z),
                     _ => Results.StatusCode(500)
                 };
             })

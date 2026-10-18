@@ -21,7 +21,7 @@ public class DetailService
     }
 
     // Создаем деталь
-    public DetailResponseDto? CreateDetail(CreateDetailDto dto, ClaimsPrincipal principal)
+    public Result<DetailResponseDto> CreateDetail(CreateDetailDto dto, ClaimsPrincipal principal)
     {
         // Добавляем проверку до того как лезим в бд 
         var validationResult = _validator.Validate(dto);
@@ -29,7 +29,7 @@ public class DetailService
         // если результат НЕ ВАЛИДНЫЙ выдаём ошибку
         if (!validationResult.IsValid)
         {
-            return null;
+            return Result<DetailResponseDto>.Failure(new Error(ErrorType.Validator, "Name , count , or status is not valid"));
         }
     
         // читаем имя из токена
@@ -41,7 +41,7 @@ public class DetailService
         // Защита от дурака: а вдруг юзера уже удалили из базы, а токен у него ещё жив
         if (userFromDb == null)
         {
-            return null;
+            return Result<DetailResponseDto>.Failure(new Error(ErrorType.Unauthorized, "User not found of token expired.")); 
         }
 
         // Создаем настоящую детальку и сохраняем ее
@@ -67,11 +67,11 @@ public class DetailService
         };
         
         // И возвращаем уже Безопасную детальку, чтобы ничего не слить лишнего
-        return safeDetail;
+        return Result<DetailResponseDto>.Success(safeDetail);
     }
     
     // Получаем все детали
-    public List<DetailResponseDto> GetDetailsAll()
+    public Result<List<DetailResponseDto>> GetDetailsAll()
     {
         var allDetails = _db.Details
             .Select(d => new DetailResponseDto
@@ -83,7 +83,7 @@ public class DetailService
                 Id = d.Id
             })
             .ToList();
-        return allDetails;
+        return Result<List<DetailResponseDto>>.Success(allDetails);
     }
     
     // Получаем одну конкретную деталь
