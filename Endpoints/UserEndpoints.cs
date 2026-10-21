@@ -63,19 +63,18 @@ public static class UserEndpoints
             }
         });
 
+        // Обновляем конкретного юзера
         app.MapPut("api/factory/users/{id}", (UserService userService, int id, UpdateUserDto dto) =>
             {
 
                 var putUser = userService.UpdateUser(id, dto);
-            
-                if (putUser != null)
+
+                return putUser switch
                 {
-                    return Results.Ok(putUser);
-                }
-                else 
-                {
-                    return Results.NotFound();
-                }
+                    { IsSuccess: true } => Results.Ok(putUser.Value),
+                    { Error.Type: ErrorType.NotFound } => Results.NotFound(putUser.Error.Message),
+                    _ => Results.StatusCode(500)
+                };
             })
         .RequireAuthorization("Boss");
 
