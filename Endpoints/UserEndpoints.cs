@@ -22,14 +22,12 @@ public static class UserEndpoints
         {
             var login = authService.Login(ldto);
 
-            if (login == null)
+            return login switch
             {
-                return Results.Json(
-                    data: new { error = "Неавторизован", message = "Неверный логин или пароль" }, 
-                    statusCode: 401);
-            }
-            
-            return Results.Ok(login);
+                { IsSuccess: true } => Results.Ok(login.Value),
+                { Error.Type: ErrorType.Unauthorized } => Results.Unauthorized(),
+                _ => Results.StatusCode(500)
+            };
         });
         
         // Отправляем юзеров в бд

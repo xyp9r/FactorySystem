@@ -4,6 +4,7 @@ using FactorySystem.Data;
 using FactorySystem.Endpoints;
 using BCrypt.Net;
 using Microsoft.IdentityModel.Tokens;
+using FactorySystem.Models;
 
 namespace FactorySystem.Services;
 
@@ -20,13 +21,13 @@ public class AuthService
         _hasher = hasher;
     }
 
-    public string? Login(LoginDto ldto)
+    public Result<string> Login(LoginDto ldto)
     {
         var user = _db.Users.FirstOrDefault(u => u.Name == ldto.Name);
 
         if (user == null || !_hasher.VerifyHashedPassword(ldto.Password, user.PasswordHash))
         {
-            return null;
+            return Result<string>.Failure(new Error(ErrorType.Unauthorized, "Invalid username or password"));
         }
         
         var key = _config["JwtSecret"]!;
@@ -44,6 +45,6 @@ public class AuthService
     
         var jwtString = new JwtSecurityTokenHandler().WriteToken(token);
     
-        return jwtString;
+        return Result<string>.Success(jwtString);
     }
 }
