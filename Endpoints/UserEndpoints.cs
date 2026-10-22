@@ -53,14 +53,12 @@ public static class UserEndpoints
         {
             var getUser = userService.GetUser(id);
 
-            if (getUser != null)
+            return getUser switch
             {
-                return Results.Ok(getUser);
-            }
-            else
-            {
-                return Results.NotFound();
-            }
+                { IsSuccess: true } => Results.Ok(getUser.Value),
+                { Error.Type: ErrorType.NotFound } => Results.NotFound(getUser.Error.Message),
+                _ => Results.StatusCode(500)
+            };
         });
 
         // Обновляем конкретного юзера

@@ -67,7 +67,7 @@ public class UserService
     }
     
     // Получение конкретного юзера
-    public UserResponseDto? GetUser(int id)
+    public Result<UserResponseDto> GetUser(int id)
     {
         var user = _db.Users.Find(id);
 
@@ -81,11 +81,11 @@ public class UserService
                 Role = user.Role
             };
 
-            return safeUser;
+            return Result<UserResponseDto>.Success(safeUser);
         }
         else
         {
-            return null;
+            return Result<UserResponseDto>.Failure(new Error(ErrorType.NotFound, "User not found on the factory floor."));
         }
     }
     
