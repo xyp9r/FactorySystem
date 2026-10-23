@@ -53,7 +53,7 @@ public class UserService
     }
     
     // Получение всех юзеров
-    public List<UserResponseDto> GetUsersAll()
+    public Result<List<UserResponseDto>> GetUsersAll()
     {
         var allUsers = _db.Users
             .Select(userFromDb => new UserResponseDto
@@ -63,7 +63,7 @@ public class UserService
                 Role = userFromDb.Role,
             })
             .ToList();
-        return allUsers;
+        return Result<List<UserResponseDto>>.Success(allUsers);
     }
     
     // Получение конкретного юзера

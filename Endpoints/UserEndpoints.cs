@@ -44,7 +44,11 @@ public static class UserEndpoints
             {
                 var getUsersAll = userService.GetUsersAll();
                 
-                return Results.Ok(getUsersAll);
+                return getUsersAll switch
+                {
+                    { IsSuccess: true } => Results.Ok(getUsersAll.Value),
+                    _ => Results.StatusCode(500)
+                };
             })
         .RequireAuthorization();
 
