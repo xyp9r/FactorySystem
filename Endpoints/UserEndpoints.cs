@@ -83,15 +83,15 @@ public static class UserEndpoints
         // Удаление юзеров
         app.MapDelete("/api/factory/users/{id}", (UserService userService, int id) =>
         {
-           var isDeleted = userService.DeleteUser(id);
-           if (isDeleted)
+           var userDeleted = userService.DeleteUser(id);
+
+           return userDeleted switch
            {
-               return Results.Ok();
-           }
-           else
-           {
-               return Results.NotFound();
-           }
+               {IsSuccess: true} => Results.Ok(),
+               { Error.Type: ErrorType.NotFound } => Results.NotFound(userDeleted.Error.Message),
+               _ => Results.StatusCode(500)
+           };
+
         })
         .RequireAuthorization("Boss");
 

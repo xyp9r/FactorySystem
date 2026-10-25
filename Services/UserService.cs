@@ -37,18 +37,18 @@ public class UserService
     }
 
     // Удаление юзера
-    public bool DeleteUser(int id)
+    public Result DeleteUser(int id)
     {
         var deleteUser = _db.Users.Find(id);
         if (deleteUser != null)
         {
             _db.Users.Remove(deleteUser);
             _db.SaveChanges();
-            return true;
+            return Result.Success();
         }
         else
         {
-            return false;
+            return Result.Failure( new Error ( ErrorType.NotFound, "User not found on the factory floor." ) );
         }
     }
     
