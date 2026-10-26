@@ -17,7 +17,7 @@ public class UserService
         _hasher = hasher;
     }
     
-    public UserResponseDto CreateUser(User newUser)
+    public Result<UserResponseDto> CreateUser(User newUser)
     {
         
         newUser.PasswordHash = _hasher.HashPassword(newUser.PasswordHash);
@@ -33,7 +33,7 @@ public class UserService
             Role = newUser.Role,
         };
 
-        return safeUser;
+        return Result<UserResponseDto>.Success(safeUser);
     }
 
     // Удаление юзера

@@ -34,8 +34,12 @@ public static class UserEndpoints
         app.MapPost("/api/factory/users", (User newUser, UserService userService) =>
         {
             var safeUser = userService.CreateUser(newUser);
-            
-            return Results.Ok(safeUser);
+
+            return safeUser switch
+            {
+                { IsSuccess: true } => Results.Ok(safeUser.Value),
+                _ => Results.StatusCode(500)
+            };
         })
         .RequireAuthorization("Boss");
 
