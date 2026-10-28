@@ -19,6 +19,12 @@ public class UserService
     
     public Result<UserResponseDto> CreateUser(User newUser)
     {
+        var userFromDb = _db.Users.FirstOrDefault(u => u.Name == newUser.Name);
+
+        if (userFromDb != null)
+        {
+            return Result<UserResponseDto>.Failure(new Error(ErrorType.Conflict, "User with that name already exists."));
+        }
         
         newUser.PasswordHash = _hasher.HashPassword(newUser.PasswordHash);
         

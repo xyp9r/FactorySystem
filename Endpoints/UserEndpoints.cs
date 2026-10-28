@@ -38,6 +38,7 @@ public static class UserEndpoints
             return safeUser switch
             {
                 { IsSuccess: true } => Results.Ok(safeUser.Value),
+                { Error.Type: ErrorType.Conflict } => Results.Conflict(safeUser.Error.Message),
                 _ => Results.StatusCode(500)
             };
         })
