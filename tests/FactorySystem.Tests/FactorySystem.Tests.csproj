@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FactorySystem.csproj" />
+    <ProjectReference Include="..\..\src\FactorySystem\FactorySystem.csproj" />
   </ItemGroup>
 
 </Project>

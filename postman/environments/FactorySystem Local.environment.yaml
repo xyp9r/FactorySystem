@@ -1,0 +1,10 @@
+name: FactorySystem Local
+values:
+  - key: base_url
+    value: 'http://localhost:5284'
+    type: default
+    enabled: true
+  - key: access_token
+    value: ''
+    type: secret
+    enabled: true
