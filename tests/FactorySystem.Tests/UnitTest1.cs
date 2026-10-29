@@ -1,5 +1,7 @@
 ﻿using FactorySystem.Data;
 using FactorySystem.Endpoints;
+using FactorySystem.Models;
+using FactorySystem.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace FactorySystem.FactorySystem.Tests;
@@ -23,5 +25,20 @@ public class UnitTest1
             .Options;
 
         var fakeDb = new AppDbContext(options);
+
+        var service = new UserService(fakeDb, fakeHasher);
+
+        var testUser = new User
+        {
+            Name = "TestUser",
+            PasswordHash = "fake_hash",
+            Role = "TestRole"
+        };
+
+        var result = service.CreateUser(testUser);
+
+        Assert.True(result.IsSuccess);
+        
+        Assert.Equal("TestUser", result.Value.Name);
      }
 }
