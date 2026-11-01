@@ -4,7 +4,7 @@ using FactorySystem.Models;
 using FactorySystem.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace FactorySystem.FactorySystem.Tests;
+namespace FactorySystem.Tests;
 
 using Moq;
 
@@ -14,6 +14,7 @@ public class UnitTest1
     public void Test1()
      {
          
+         // Arrange - Подготовка: собираем зависимости, фейки и входные данные
         var hasherMock = new Mock<IPasswordHasher>();
 
         hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
@@ -35,10 +36,56 @@ public class UnitTest1
             Role = "TestRole"
         };
 
+        // Act - Действие: вызываем ровно ОДИН метод, который хотим протестировать
         var result = service.CreateUser(testUser);
 
-        Assert.True(result.IsSuccess);
         
+        // Assert - Проверка: убеждаемся, что метод отработал так как мы ожидали
+        Assert.True(result.IsSuccess);
         Assert.Equal("TestUser", result.Value.Name);
      }
+    
+    [Fact]
+    public void Test2_UserAlreadyExists()
+    {
+     
+        // Arrange - Подготовка: собираем зависимости, фейки и входные данные
+        var hasherMock = new Mock<IPasswordHasher>();
+
+        hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
+        
+        var fakeHasher = hasherMock.Object;
+        
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestFactorydb")
+            .Options;
+        
+        var fakeDb = new AppDbContext(options);
+        
+        var service = new UserService(fakeDb, fakeHasher);
+
+        var existingUser = new User
+        {
+            Name = "Ivan",
+            PasswordHash = "fake_hash",
+            Role = "TestRole"
+        };
+
+        var testUser = new User
+        {
+            Name = "Ivan",
+            PasswordHash = "fake_hash",
+            Role = "TestRole"
+        };
+        
+        fakeDb.Users.Add(existingUser);
+        fakeDb.SaveChanges();
+
+        // Act - Действие: вызываем ровно ОДИН метод, который хотим протестировать
+        var result = service.CreateUser(testUser);
+        
+        // Assert - Проверка: убеждаемся, что метод отработал так как мы ожидали
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Conflict, result.Error.Type);
+    }
 }
