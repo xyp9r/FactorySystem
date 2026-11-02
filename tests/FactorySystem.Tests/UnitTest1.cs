@@ -88,4 +88,37 @@ public class UnitTest1
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorType.Conflict, result.Error.Type);
     }
+
+    [Fact]
+    public void Test3_EmptyName_ReturnsError()
+    {
+        // Arrange - Собираем зависимости
+        var hasherMock = new Mock<IPasswordHasher>();
+        
+        hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
+
+        var fakeHasher = hasherMock.Object;
+        
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestFactorydb")
+            .Options;
+
+        var fakeDb = new AppDbContext(options);
+
+        var service = new UserService(fakeDb, fakeHasher);
+
+        var testUser = new User
+        {
+            Name = "",
+            PasswordHash = "fake_hash",
+            Role = "TestRole"
+        };
+
+        // Act - действие: создаем нашего подопытного юзера
+        var result = service.CreateUser(testUser);
+        
+        // Assert - Проверка, убеждаемся что метод отработал как мы и ожидали
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Validator, result.Error.Type);
+    }
 }

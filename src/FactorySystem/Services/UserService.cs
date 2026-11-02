@@ -25,6 +25,11 @@ public class UserService
         {
             return Result<UserResponseDto>.Failure(new Error(ErrorType.Conflict, "User with that name already exists."));
         }
+
+        if (string.IsNullOrWhiteSpace(newUser.Name))
+        {
+            return Result<UserResponseDto>.Failure(new Error(ErrorType.Validator, "User name cannot be empty."));
+        }
         
         newUser.PasswordHash = _hasher.HashPassword(newUser.PasswordHash);
         
