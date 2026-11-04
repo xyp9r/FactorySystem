@@ -26,11 +26,13 @@ public class UserService
             return Result<UserResponseDto>.Failure(new Error(ErrorType.Conflict, "User with that name already exists."));
         }
 
+        // Проверка на пустое имя
         if (string.IsNullOrWhiteSpace(newUser.Name))
         {
             return Result<UserResponseDto>.Failure(new Error(ErrorType.Validator, "User name cannot be empty."));
         }
 
+        // Проверка на пустой пароль
         if (string.IsNullOrWhiteSpace(newUser.PasswordHash))
         {
             return Result<UserResponseDto>.Failure(new Error(ErrorType.Validator, "Password cannot be empty."));
