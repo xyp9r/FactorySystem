@@ -30,6 +30,11 @@ public class UserService
         {
             return Result<UserResponseDto>.Failure(new Error(ErrorType.Validator, "User name cannot be empty."));
         }
+
+        if (string.IsNullOrWhiteSpace(newUser.PasswordHash))
+        {
+            return Result<UserResponseDto>.Failure(new Error(ErrorType.Validator, "Password cannot be empty."));
+        }
         
         newUser.PasswordHash = _hasher.HashPassword(newUser.PasswordHash);
         
