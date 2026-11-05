@@ -189,6 +189,28 @@ public class UnitTest1
         
         Assert.True(delete.IsSuccess);
         Assert.Null(deletedUser);
+    }
 
+    [Fact]
+    public void Test6_DeleteNonExistentUser_ReturnsError()
+    {
+        var hasherMock = new Mock<IPasswordHasher>();
+        
+        hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
+
+        var fakeHasher = hasherMock.Object;
+
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestFactorydb")
+            .Options;
+
+        var fakeDb = new AppDbContext(options);
+
+        var service = new UserService(fakeDb, fakeHasher);
+
+        var result = service.DeleteUser(777);
+        
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.NotFound, result.Error.Type);
     }
 }
