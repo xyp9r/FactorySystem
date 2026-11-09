@@ -256,4 +256,38 @@ public class UnitTest1
         Assert.True(get.IsSuccess);
         Assert.Equal(2, get.Value.Count);
     }
+    
+    [Fact]
+    public void Test8_GetUserById_ReturnsSuccess()
+    {
+        var hasherMock = new Mock<IPasswordHasher>();
+        
+        hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
+
+        var fakeHasher = hasherMock.Object;
+
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestFactorydb")
+            .Options;
+
+        var fakeDb = new AppDbContext(options);
+
+        var service = new UserService(fakeDb, fakeHasher);
+
+        var testUser = new User
+        {
+            Name = "TestUser",
+            Id = 1337,
+            PasswordHash = "fake_hash",
+            Role = "TestRole"
+        };
+
+        fakeDb.Users.Add(testUser);
+        fakeDb.SaveChanges();
+
+        var result = service.GetUser(1337);
+        
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1337, result.Value.Id);
+    }
 }
