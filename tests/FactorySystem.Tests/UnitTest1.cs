@@ -10,6 +10,32 @@ using Moq;
 
 public class UnitTest1
 {
+    
+    // Добавляю читалку для общей штуки чтобы её не копипастить
+
+    private readonly AppDbContext _fakeDb;
+    private readonly Mock<IPasswordHasher> _hasherMock;
+    private readonly UserService _service;
+
+    public UnitTest1()
+    {
+        // Генерируем уникальное имя для бд
+        var dbName = Guid.NewGuid().ToString();
+        
+        // Собираем настройки бд
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(databaseName: dbName)
+            .Options;
+        
+        // Создаем объекты и записываем их в приватные поля
+        _fakeDb = new AppDbContext(options);
+
+        _hasherMock = new Mock<IPasswordHasher>();
+        _hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
+        
+        _service = new UserService(_fakeDb, _hasherMock.Object);
+    }
+    
     [Fact]
     public void Test1()
      {
