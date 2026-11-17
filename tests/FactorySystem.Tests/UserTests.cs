@@ -8,7 +8,7 @@ namespace FactorySystem.Tests;
 
 using Moq;
 
-public class UnitTest1
+public class UserTests
 {
     
     // Добавляю читалку для общей штуки чтобы её не копипастить
@@ -17,7 +17,7 @@ public class UnitTest1
     private readonly Mock<IPasswordHasher> _hasherMock;
     private readonly UserService _service;
 
-    public UnitTest1()
+    public UserTests()
     {
         // Генерируем уникальное имя для бд
         var dbName = Guid.NewGuid().ToString();
@@ -37,24 +37,9 @@ public class UnitTest1
     }
     
     [Fact]
-    public void Test1()
+    public void Test1_CreateUser_ReturnsSuccess()
      {
          
-         // Arrange - Подготовка: собираем зависимости, фейки и входные данные
-        var hasherMock = new Mock<IPasswordHasher>();
-
-        hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
-        
-        var fakeHasher = hasherMock.Object;
-
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestFactorydb")
-            .Options;
-
-        var fakeDb = new AppDbContext(options);
-
-        var service = new UserService(fakeDb, fakeHasher);
-
         var testUser = new User
         {
             Name = "TestUser",
@@ -63,12 +48,13 @@ public class UnitTest1
         };
 
         // Act - Действие: вызываем ровно ОДИН метод, который хотим протестировать
-        var result = service.CreateUser(testUser);
+        var result = _service.CreateUser(testUser);
 
         
         // Assert - Проверка: убеждаемся, что метод отработал так как мы ожидали
         Assert.True(result.IsSuccess);
         Assert.Equal("TestUser", result.Value.Name);
+        
      }
     
     [Fact]
