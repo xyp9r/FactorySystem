@@ -8,7 +8,7 @@ namespace FactorySystem.Tests;
 
 using Moq;
 
-public class UserTests
+public class UserServiceTests
 {
     
     // Добавляю читалку для общей штуки чтобы её не копипастить
@@ -17,7 +17,7 @@ public class UserTests
     private readonly Mock<IPasswordHasher> _hasherMock;
     private readonly UserService _service;
 
-    public UserTests()
+    public UserServiceTests()
     {
         // Генерируем уникальное имя для бд
         var dbName = Guid.NewGuid().ToString();
