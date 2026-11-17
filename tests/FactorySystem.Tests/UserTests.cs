@@ -58,23 +58,8 @@ public class UserTests
      }
     
     [Fact]
-    public void Test2_UserAlreadyExists()
+    public void Test2_UserAlreadyExists_ReturnsError()
     {
-     
-        // Arrange - Подготовка: собираем зависимости, фейки и входные данные
-        var hasherMock = new Mock<IPasswordHasher>();
-
-        hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
-        
-        var fakeHasher = hasherMock.Object;
-        
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestFactorydb")
-            .Options;
-        
-        var fakeDb = new AppDbContext(options);
-        
-        var service = new UserService(fakeDb, fakeHasher);
 
         var existingUser = new User
         {
@@ -90,11 +75,11 @@ public class UserTests
             Role = "TestRole"
         };
         
-        fakeDb.Users.Add(existingUser);
-        fakeDb.SaveChanges();
+        _fakeDb.Users.Add(existingUser);
+        _fakeDb.SaveChanges();
 
         // Act - Действие: вызываем ровно ОДИН метод, который хотим протестировать
-        var result = service.CreateUser(testUser);
+        var result = _service.CreateUser(testUser);
         
         // Assert - Проверка: убеждаемся, что метод отработал так как мы ожидали
         Assert.False(result.IsSuccess);
@@ -104,20 +89,6 @@ public class UserTests
     [Fact]
     public void Test3_EmptyName_ReturnsError()
     {
-        // Arrange - Собираем зависимости
-        var hasherMock = new Mock<IPasswordHasher>();
-        
-        hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
-
-        var fakeHasher = hasherMock.Object;
-        
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestFactorydb")
-            .Options;
-
-        var fakeDb = new AppDbContext(options);
-
-        var service = new UserService(fakeDb, fakeHasher);
 
         var testUser = new User
         {
@@ -127,7 +98,7 @@ public class UserTests
         };
 
         // Act - действие: создаем нашего подопытного юзера
-        var result = service.CreateUser(testUser);
+        var result = _service.CreateUser(testUser);
         
         // Assert - Проверка, убеждаемся что метод отработал как мы и ожидали
         Assert.False(result.IsSuccess);
@@ -137,21 +108,7 @@ public class UserTests
     [Fact]
     public void Test4_EmptyPassword_ReturnsError()
     {
-        // Arrange - собираем зависимости
-        var hasherMock = new Mock<IPasswordHasher>();
         
-        hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
-
-        var fakeHasher = hasherMock.Object;
-
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestFactorydb")
-            .Options;
-
-        var fakeDb = new AppDbContext(options);
-
-        var service = new UserService(fakeDb, fakeHasher);
-
         var testUser = new User
         {
             Name = "TestUser",
@@ -160,7 +117,7 @@ public class UserTests
         };
         
         // Act - Создаем юзера
-        var result = service.CreateUser(testUser);
+        var result = _service.CreateUser(testUser);
 
         // Assert - Проверка, убеждаемся что метод отработал как мы и ожидали
         Assert.False(result.IsSuccess);
@@ -170,20 +127,7 @@ public class UserTests
     [Fact]
     public void Test5_DeleteUser_ReturnsSuccess()
     {
-        var hasherMock = new Mock<IPasswordHasher>();
         
-        hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
-
-        var fakeHasher = hasherMock.Object;
-
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestFactorydb")
-            .Options;
-
-        var fakeDb = new AppDbContext(options);
-
-        var service = new UserService(fakeDb, fakeHasher);
-
         var testUser = new User
         {
             Name = "TestUser",
@@ -192,12 +136,12 @@ public class UserTests
             Role = "TestRole"
         };
 
-        fakeDb.Users.Add(testUser);
-        fakeDb.SaveChanges();
+        _fakeDb.Users.Add(testUser);
+        _fakeDb.SaveChanges();
 
-        var delete = service.DeleteUser(testUser.Id);
+        var delete = _service.DeleteUser(testUser.Id);
         
-        var deletedUser = fakeDb.Users.Find(testUser.Id);
+        var deletedUser = _fakeDb.Users.Find(testUser.Id);
         
         Assert.True(delete.IsSuccess);
         Assert.Null(deletedUser);
@@ -206,21 +150,8 @@ public class UserTests
     [Fact]
     public void Test6_DeleteNonExistentUser_ReturnsError()
     {
-        var hasherMock = new Mock<IPasswordHasher>();
-        
-        hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
 
-        var fakeHasher = hasherMock.Object;
-
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestFactorydb")
-            .Options;
-
-        var fakeDb = new AppDbContext(options);
-
-        var service = new UserService(fakeDb, fakeHasher);
-
-        var result = service.DeleteUser(777);
+        var result = _service.DeleteUser(777);
         
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorType.NotFound, result.Error.Type);
@@ -229,20 +160,7 @@ public class UserTests
     [Fact]
     public void Test7_GetUsersAll_ReturnsSuccess()
     {
-        var hasherMock = new Mock<IPasswordHasher>();
         
-        hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
-
-        var fakeHasher = hasherMock.Object;
-
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestFactorydb")
-            .Options;
-
-        var fakeDb = new AppDbContext(options);
-        
-        var service = new UserService(fakeDb, fakeHasher);
-
         var testUser = new User
         {
             Name = "TestUser",
@@ -259,11 +177,11 @@ public class UserTests
             Role = "TestRole"
         };
 
-        fakeDb.Users.Add(testUser);
-        fakeDb.Users.Add(testUser2);
-        fakeDb.SaveChanges();
+        _fakeDb.Users.Add(testUser);
+        _fakeDb.Users.Add(testUser2);
+        _fakeDb.SaveChanges();
 
-        var get = service.GetUsersAll();
+        var get = _service.GetUsersAll();
         
         Assert.True(get.IsSuccess);
         Assert.Equal(2, get.Value.Count);
@@ -272,20 +190,7 @@ public class UserTests
     [Fact]
     public void Test8_GetUserById_ReturnsSuccess()
     {
-        var hasherMock = new Mock<IPasswordHasher>();
         
-        hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
-
-        var fakeHasher = hasherMock.Object;
-
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestFactorydb")
-            .Options;
-
-        var fakeDb = new AppDbContext(options);
-
-        var service = new UserService(fakeDb, fakeHasher);
-
         var testUser = new User
         {
             Name = "TestUser",
@@ -294,10 +199,10 @@ public class UserTests
             Role = "TestRole"
         };
 
-        fakeDb.Users.Add(testUser);
-        fakeDb.SaveChanges();
+        _fakeDb.Users.Add(testUser);
+        _fakeDb.SaveChanges();
 
-        var result = service.GetUser(1337);
+        var result = _service.GetUser(1337);
         
         Assert.True(result.IsSuccess);
         Assert.Equal(1337, result.Value.Id);
@@ -306,21 +211,8 @@ public class UserTests
     [Fact]
     public void Test9_GetUserById_ReturnsError()
     {
-        var hasherMock = new Mock<IPasswordHasher>();
         
-        hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
-
-        var fakeHasher = hasherMock.Object;
-        
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestFactorydb")
-            .Options;
-
-        var fakeDb = new AppDbContext(options);
-
-        var service = new UserService(fakeDb, fakeHasher);
-
-        var result = service.GetUser(1337);
+        var result = _service.GetUser(1337);
         
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorType.NotFound, result.Error.Type);
@@ -329,20 +221,7 @@ public class UserTests
     [Fact]
     public void Test10_UpdateUser_ReturnsSuccess()
     {
-        var hasherMock = new Mock<IPasswordHasher>();
         
-        hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
-
-        var fakeHasher = hasherMock.Object;
-
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestFactorydb")
-            .Options;
-
-        var fakeDb = new AppDbContext(options);
-
-        var service = new UserService(fakeDb, fakeHasher);
-
         var oldUser = new User
         {
             Name = "OldUser",
@@ -351,17 +230,17 @@ public class UserTests
             Role = "OldRole"
         };
 
-        fakeDb.Users.Add(oldUser);
-        fakeDb.SaveChanges();
+        _fakeDb.Users.Add(oldUser);
+        _fakeDb.SaveChanges();
 
         var newUser = new UpdateUserDto
         {
             Name = "NewUser"
         };
 
-        var result = service.UpdateUser(777, newUser);
+        var result = _service.UpdateUser(777, newUser);
 
-        var updatedUser = fakeDb.Users.Find(777);
+        var updatedUser = _fakeDb.Users.Find(777);
         
         Assert.True(result.IsSuccess);
         Assert.Equal("NewUser", updatedUser.Name);
@@ -370,21 +249,8 @@ public class UserTests
     [Fact]
     public void Test11_UpdateNonExistentUser_ReturnsError()
     {
-        var hasherMock = new Mock<IPasswordHasher>();
-
-        hasherMock.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("fake_hash");
-
-        var fakeHasher = hasherMock.Object;
-
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestFactorydb")
-            .Options;
-
-        var fakeDb = new AppDbContext(options);
-
-        var service = new UserService(fakeDb, fakeHasher);
-
-        var result = service.UpdateUser(777, new UpdateUserDto());
+        
+        var result = _service.UpdateUser(777, new UpdateUserDto());
         
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorType.NotFound, result.Error.Type);
